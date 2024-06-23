@@ -1,11 +1,13 @@
 const ROOT_URL = 'https://super-scraper.onrender.com';
+// const ROOT_URL = 'http://localhost:8080';
 
 const homeB = document.getElementById('homeB');
 
 const toolBar = document.getElementById('toolBar');
 const content = document.getElementById('content');
 
-
+localStorage.removeItem('sesTok');
+localStorage.removeItem('counterToken');
 
 const tools = `
     <h2>User :</h2>
@@ -14,10 +16,10 @@ const tools = `
         <input type="password" id="pswd" name="pswd" placeholder="contraseña">
     </div>
     <div>
-        <button id="regisUserB">REGISTRAR</button>
-        <button id="loginUserB">LOG IN</button>
-        <button id="logoutUserB">LOG OUT</button>
-        <button id="removeUserB">BORRAR</button>
+        <button id="regisUserB" type="button">REGISTRAR</button>
+        <button id="loginUserB" type="button">LOG IN</button>
+        <button id="logoutUserB" type="button">LOG OUT</button>
+        <button id="removeUserB" type="button">BORRAR</button>
     </div>
 `;
 
@@ -31,61 +33,75 @@ function regisUser(newUser){
 
 	})
 		.then((res) =>res.json())
-		.then((data) => {
-            console.log(data);
-			content.innerHTML=`<p>${data}</p>`;
+		.then((data) => {           
+            data.errors?
+                content.innerHTML=`${data.errors.map(err =>`<p>${err.msg}</p>`).join('')}`:
+			    content.innerHTML=`<p>Hola ${data.name} , recuerda loguearte!</p>`
 		})
 }
 
 function loginUser(user){
+    let sesTok = localStorage.getItem('sesTok');
+    if(sesTok == undefined) sesTok = null;
+
     fetch(ROOT_URL + '/api/users/login', {
-        credentials: 'same-origin',
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify(user),
+		body: JSON.stringify({...user,sesTok}),
 	})
 		.then((res) =>res.json())
 		.then((data) => {
-            console.log(data);
-			content.innerHTML=`<p>${data}</p>`;
+            if(data.sestok != undefined)
+                localStorage.setItem('sesTok', data.sestok);   
+
+			data.errors?
+                content.innerHTML=`${data.errors.map(err =>`<p>${err.msg}</p>`).join('')}`:
+			    content.innerHTML=`<p>${data.message}</p>`
 		})
 }
 
 function logoutUser(){
+    const sesTok = localStorage.getItem('sesTok');
     fetch(ROOT_URL + '/api/users/logout', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-		}
+		},
+        body: JSON.stringify({sesTok}),
 	})
 		.then((res) =>res.json())
 		.then((data) => {
-            console.log(data);
-			content.innerHTML=`<p>${data}</p>`;
+            if(data.message === 'Good bye!')localStorage.removeItem('sesTok');
+
+			data.errors?
+                content.innerHTML=`${data.errors.map(err =>`<p>${err.msg}</p>`).join('')}`:
+                content.innerHTML=`<p>${data.message}</p>`
 		})
 }
 
 function removeUser(user){
+    const sesTok = localStorage.getItem('sesTok');
     fetch(ROOT_URL + '/api/users/remove', {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify(user),
+		body: JSON.stringify({...user,sesTok}),
 	})
 		.then((res) =>res.json())
 		.then((data) => {
-            console.log(data);
-			content.innerHTML=`<p>${data}</p>`;
+			data.errors?
+                content.innerHTML=`${data.errors.map(err =>`<p>${err.msg}</p>`).join('')}`:
+			    content.innerHTML=`<p>${data.message}</p>`
 		})
 }
 
-homeB.addEventListener('click',()=>render());
+homeB.addEventListener('click',()=>renderUsr());
 
 
-function render(){
+function renderUsr(){
     toolBar.innerHTML = tools;
     content.innerHTML = '';
 
@@ -120,8 +136,10 @@ function render(){
         removeUser(user);
     })
     
-}
-
-function renderUser(func,data){
-
+    userPswd.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          document.getElementById("loginUserB").click();
+        }
+      });
 }
