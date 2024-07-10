@@ -1,13 +1,4 @@
-const ROOT_URL = 'https://super-scraper.onrender.com';
-// const ROOT_URL = 'http://localhost:8080';
-
 const homeB = document.getElementById('homeB');
-
-const toolBar = document.getElementById('toolBar');
-const content = document.getElementById('content');
-
-localStorage.removeItem('sesTok');
-localStorage.removeItem('counterToken');
 
 const tools = `
     <h2>User :</h2>
@@ -21,6 +12,11 @@ const tools = `
         <button id="logoutUserB" type="button">LOG OUT</button>
         <button id="removeUserB" type="button">BORRAR</button>
     </div>
+    <hr>
+        <p>Tienes un usuario de prueba:</p>
+        <p><b>Usuario :</b> probe</p>
+        <p><b>Contraseña :</b>1234</p>
+    <hr>
 `;
 
 function regisUser(newUser){
